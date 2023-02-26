@@ -18,8 +18,8 @@ private:
 
 	std::shared_ptr<ecsTypes::registry> registry;
 
-	std::unique_ptr<Graphics> graphics;
-	std::unique_ptr<Physics> physics;
+	std::unique_ptr<graphics::Graphics> graphics;
+	std::unique_ptr<physics::Physics> physics;
 
 	void setup();
 	void update();

@@ -2,35 +2,23 @@
 #include <SDL.h>
 #include <glm/gtx/rotate_vector.hpp>
 
-Physics::Physics(const std::shared_ptr<ecsTypes::registry>& registry, float pixelsPerMeter, glm::vec2 gravity) : registry(registry), pixelsPerMeter(pixelsPerMeter), gravity(gravity) {
+#include "state.h"
 
+#include "units.h"
+
+#include "../graphics/state.h"
+
+using namespace physics;
+using namespace physics::units;
+
+Physics::Physics(const std::shared_ptr<ecsTypes::registry>& registry, float pixelsPerMeter, glm::vec2 gravity) : registry(registry) {
+	state::pixelsPerMeter = pixelsPerMeter;
+	state::gravity = gravity;
+
+	force = std::make_unique<Force>(registry);
 };
 
-
 // Systems
-void Physics::applyForce(ecsTypes::entity entity, glm::vec2 force) const {
-	if (!registry->any_of<components::linearMotion>(entity)) {
-		SDL_LogWarn(SDL_LOG_PRIORITY_WARN, "Tried to apply force to entity without linearMotion component");
-		return;
-	};
-
-	auto& linearMotion = registry->get<components::linearMotion>(entity);
-
-	linearMotion.acceleration += force * linearMotion.invMass;
-}
-
-void Physics::applyTorque(ecsTypes::entity entity, float torque) const {
-	if (!registry->any_of<components::angularMotion>(entity)) {
-		SDL_LogWarn(SDL_LOG_PRIORITY_WARN, "Tried to apply force to entity without angularMotion component");
-		return;
-	};
-
-	auto& angularMotion = registry->get<components::angularMotion>(entity);
-
-	angularMotion.acceleration += torque * angularMotion.invI;
-	SDL_Log("%.3f", angularMotion.invI);
-}
-
 void Physics::update() const {
 	// compute dt
 	static long long int timePreviousFrame;
@@ -41,10 +29,31 @@ void Physics::update() const {
 	}
 	timePreviousFrame = SDL_GetTicks64();
 
-	applyKeyboardPush();
+	force->applyKeyboardPush();
 
 	integrateLinear(dt);
 	integrateAngular(dt);
+
+
+	// JUST FOR NOW, THIS IS SO BAD AND UGLY
+	for (auto [entity, pos, motion, circle] : registry->view<components::position, components::linearMotion, const components::circleGeometry>().each()) {
+		if (pos.x - circle.radius < 0.0f) {
+			pos.x = circle.radius;
+			motion.velocity.x *= -0.5;
+		}
+		else if (pos.x + circle.radius > graphics::state::width) {
+			pos.x = graphics::state::width - circle.radius;
+			motion.velocity.x *= -0.5;
+		}
+		if (pos.y - circle.radius < 0.0f) {
+			pos.y = circle.radius;
+			motion.velocity.y *= -0.5;
+		}
+		else if (pos.y + circle.radius > graphics::state::height) {
+			pos.y = graphics::state::height - circle.radius;
+			motion.velocity.y *= -0.5;
+		}
+	}
 }
 
 void Physics::integrateLinear(float dt) const {
@@ -66,39 +75,5 @@ void Physics::integrateAngular(float dt) const {
 		rot.angle += motion.velocity * dt;
 
 		motion.acceleration = 0.0f;
-	}
-}
-
-void Physics::applyKeyboardPush() const {
-	auto keyState = SDL_GetKeyboardState(NULL);
-
-	glm::vec2 pushForce = glm::vec2();
-	float pushTorque = 0.0f;
-
-	if (keyState[SDL_SCANCODE_LEFT] && !keyState[SDL_SCANCODE_RCTRL] || keyState[SDL_SCANCODE_A]) {
-		pushForce.x -= 50.0f * pixelsPerMeter;
-	}
-	if (keyState[SDL_SCANCODE_RIGHT] && !keyState[SDL_SCANCODE_RCTRL] || keyState[SDL_SCANCODE_D]) {
-		pushForce.x += 50.0f * pixelsPerMeter;
-	}
-	if (keyState[SDL_SCANCODE_UP] || keyState[SDL_SCANCODE_W]) {
-		pushForce.y -= 50.0f * pixelsPerMeter;
-	}
-	if (keyState[SDL_SCANCODE_DOWN] || keyState[SDL_SCANCODE_S]) {
-		pushForce.y += 50.0f * pixelsPerMeter;
-	}
-	if (keyState[SDL_SCANCODE_LEFT] && keyState[SDL_SCANCODE_RCTRL] || keyState[SDL_SCANCODE_Q]) {
-		pushTorque -= 500.0f;
-	}
-	if (keyState[SDL_SCANCODE_RIGHT] && keyState[SDL_SCANCODE_RCTRL] || keyState[SDL_SCANCODE_E]) {
-		pushTorque += 500.0f;
-	}
-
-	for (auto entity : registry->view<components::linearMotion>()) {
-		applyForce(entity, pushForce);
-	}
-
-	for (auto entity : registry->view<components::angularMotion>()) {
-		applyTorque(entity, pushTorque);
 	}
 }

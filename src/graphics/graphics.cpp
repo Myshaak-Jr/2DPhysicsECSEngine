@@ -8,6 +8,10 @@
 #include "../common/components.h"
 #include "../physics/components/geometry.h"
 
+#include "state.h"
+
+using namespace graphics;
+
 Graphics::Graphics(const std::shared_ptr<ecsTypes::registry>& registry, uint32_t bgColor) : registry(registry), window(nullptr, &SDL_DestroyWindow), renderer(nullptr, &SDL_DestroyRenderer), bgColor(bgColor){
 	// Initialize SDL2
 	if (SDL_Init(SDL_INIT_VIDEO) != 0) {
@@ -19,12 +23,15 @@ Graphics::Graphics(const std::shared_ptr<ecsTypes::registry>& registry, uint32_t
 	SDL_DisplayMode display_mode;
 	SDL_GetCurrentDisplayMode(0, &display_mode);
 
+	state::width = display_mode.w;
+	state::height = display_mode.h;
+
 	window.reset(SDL_CreateWindow(
 		"Game",
 		SDL_WINDOWPOS_UNDEFINED,
 		SDL_WINDOWPOS_UNDEFINED,
-		display_mode.w,
-		display_mode.h,
+		state::width,
+		state::height,
 		SDL_WINDOW_BORDERLESS
 	));
 	if (!window) {
@@ -46,18 +53,6 @@ Graphics::Graphics(const std::shared_ptr<ecsTypes::registry>& registry, uint32_t
 
 Graphics::~Graphics() {
 	SDL_Quit();
-}
-
-int Graphics::width() {
-	int w;
-	SDL_GetWindowSize(window.get(), &w, nullptr);
-	return w;
-}
-
-int Graphics::height() {
-	int h;
-	SDL_GetWindowSize(window.get(), nullptr, &h);
-	return h;
 }
 
 glm::vec2 Graphics::center() {

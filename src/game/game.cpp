@@ -5,12 +5,16 @@
 
 #include "factories.h"
 
+#include "../physics/units.h"
+
+using namespace physics::units;
+
 Game::Game(int fps) : running(false), fps(fps) {
 	SDL_Log("Game constructor called!");
 
 	registry = std::make_shared<ecsTypes::registry>();
-	graphics = std::make_unique<Graphics>(registry, 0xFF056263);;
-	physics = std::make_unique<Physics>(registry, 50.f, glm::vec2(0.0f, 9.8f));
+	graphics = std::make_unique<graphics::Graphics>(registry, 0xFF056263);;
+	physics = std::make_unique<physics::Physics>(registry, 50_px, glm::vec2(0.0f, 9.8_m / (1_s * 1_s)));
 }
 
 Game::~Game() {
@@ -38,12 +42,8 @@ void Game::run() {
 }
 
 void Game::setup() {
-	factories::createBall(registry, graphics->center(), glm::pi<float>(), 50.0f, 8.1f);
-	factories::createBall(registry, graphics->center() + glm::vec2(150.0f, 0.0f), glm::pi<float>() / 4.0f, 25.0f, 0.6f);
-	factories::createBall(registry, graphics->center() + glm::vec2(-150.0f, 0.0f), 0.0f, 75.0f, 3.7f);
-
-	factories::createBox(registry, graphics->center() + glm::vec2(0.0f, 150.0f), glm::pi<float>() / 8.0f, 150.0f, 75.0f, 1.2f);
-	factories::createBox(registry, graphics->center() + glm::vec2(0.0f, -250.0f), glm::pi<float>() * 0.95870f, 42.0f, 212.0f, 5.4f);
+	factories::createBall(registry, glm::vec2(100_cm, 100_cm), 0_rad, 100_cm, 1_kg);
+	factories::createBall(registry, glm::vec2(500_cm, 100_cm), 0_rad, 50_cm, 1_kg);
 }
 
 void Game::update() {

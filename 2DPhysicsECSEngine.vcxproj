@@ -142,6 +142,8 @@
     <ClCompile Include="src\graphics\graphics.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\physics\physics.cpp" />
+    <ClCompile Include="src\physics\systems\collision.cpp" />
+    <ClCompile Include="src\physics\systems\force.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lib\entt\config\config.h" />
@@ -509,6 +511,10 @@
     <ClInclude Include="lib\SDL2_gfx\SDL2_imageFilter.h" />
     <ClInclude Include="lib\SDL2_gfx\SDL2_rotozoom.h" />
     <ClInclude Include="src\common\ecsTypes.h" />
+    <ClInclude Include="src\graphics\state.h" />
+    <ClInclude Include="src\physics\state.h" />
+    <ClInclude Include="src\physics\systems\collision.h" />
+    <ClInclude Include="src\physics\units.h" />
     <ClInclude Include="src\game\factories.h" />
     <ClInclude Include="src\game\game.h" />
     <ClInclude Include="src\common\components.h" />
@@ -518,6 +524,7 @@
     <ClInclude Include="src\physics\components\geometry.h" />
     <ClInclude Include="src\physics\components\motion.h" />
     <ClInclude Include="src\physics\physics.h" />
+    <ClInclude Include="src\physics\systems\force.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="lib\glm\detail\func_common.inl" />
