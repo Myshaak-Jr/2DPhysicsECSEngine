@@ -13,8 +13,9 @@ Game::Game(int fps) : running(false), fps(fps) {
 	SDL_Log("Game constructor called!");
 
 	registry = std::make_shared<ecsTypes::registry>();
-	graphics = std::make_unique<graphics::Graphics>(registry, 0xFF056263);;
-	physics = std::make_unique<physics::Physics>(registry, 50_px, glm::vec2(0.0f, 9.8_m / (1_s * 1_s)));
+	dispatcher = std::make_shared<ecsTypes::dispatcher>();
+	graphics = std::make_unique<graphics::Graphics>(registry, dispatcher, 0xFF000000);
+	physics = std::make_unique<physics::Physics>(registry, dispatcher);
 }
 
 Game::~Game() {
@@ -37,12 +38,16 @@ void Game::run() {
 		timePreviousFrame = SDL_GetTicks64();
 
 		update();
-		draw();
 	}
 }
 
 void Game::setup() {
-	factories::createBall(registry, glm::vec2(100_cm, 100_cm), 0_rad, 100_cm, 1_kg);
+	// Init physics state
+	physics::state::pixelsPerMeter = 100_px;
+	physics::state::gravity = glm::vec2(0.0f, 9.81_m / (1_s * 1_s));
+
+	// Create entities
+	player = factories::createBall(registry, glm::vec2(100_cm, 100_cm), 0_rad, 100_cm, 1_kg);
 	factories::createBall(registry, glm::vec2(500_cm, 100_cm), 0_rad, 50_cm, 1_kg);
 }
 
@@ -58,6 +63,17 @@ void Game::update() {
 			if (event.key.keysym.sym == SDLK_ESCAPE)
 				running = false;
 			break;
+		case SDL_MOUSEMOTION:
+		{
+			int x, y;
+			SDL_GetMouseState(&x, &y);
+
+			auto& pos = registry->get<components::position>(player);
+			pos.x = x;
+			pos.y = y;
+		}
+
+			break;
 		default:
 			break;
 		}
@@ -65,8 +81,5 @@ void Game::update() {
 
 	// Update Systems
 	physics->update();
-}
-
-void Game::draw() {
-	graphics->draw();
+	graphics->update();
 }

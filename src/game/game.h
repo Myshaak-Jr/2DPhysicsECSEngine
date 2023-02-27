@@ -16,12 +16,14 @@ private:
 	bool running;
 	int fps;
 
+	ecsTypes::entity player;
+
 	std::shared_ptr<ecsTypes::registry> registry;
+	std::shared_ptr<ecsTypes::dispatcher> dispatcher;
 
 	std::unique_ptr<graphics::Graphics> graphics;
 	std::unique_ptr<physics::Physics> physics;
 
 	void setup();
 	void update();
-	void draw();
 };

@@ -3,6 +3,8 @@
 #include "state.h"
 #include <glm/glm.hpp>
 
+// TODO: make the units calculated at use time to support changin the pixelsPerMeter variable over time
+
 #define UNIT_DEF_GEN(unit, scale) \
         constexpr float operator""##unit##(long double unit) { \
             return static_cast<float>(unit) * (scale); \

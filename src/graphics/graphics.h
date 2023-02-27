@@ -7,13 +7,14 @@
 #include <glm/glm.hpp>
 
 #include "../common/ecsTypes.h"
+#include "../physics/systems/collisionEvent.h"
 
 namespace graphics {
 
 	/* Handles the window and rendering
 	 */
 	struct Graphics {
-		Graphics(const std::shared_ptr<ecsTypes::registry>& registry, uint32_t bgColor);
+		Graphics(const std::shared_ptr<ecsTypes::registry>& registry, const std::shared_ptr<ecsTypes::dispatcher>& dispatcher, uint32_t bgColor);
 		~Graphics();
 
 		/*
@@ -22,15 +23,17 @@ namespace graphics {
 		glm::vec2 center();
 
 		/*
-		 * The draw system which runs all the other graphics-related systems
+		 * The main update system which runs all the other graphics-related update systems
 		 */
-		void draw();
+		void update();
 
 	private:
 		std::unique_ptr<SDL_Window, decltype(&SDL_DestroyWindow)> window;
 		std::unique_ptr<SDL_Renderer, decltype(&SDL_DestroyRenderer)> renderer;
 
 		std::shared_ptr<ecsTypes::registry> registry;
+		std::shared_ptr<ecsTypes::dispatcher> globalDispatcher;
+		std::shared_ptr<ecsTypes::dispatcher> localDispatcher;
 
 		uint32_t bgColor;
 
@@ -61,6 +64,18 @@ namespace graphics {
 		 */
 		void drawPhysicsCircleGeometry();
 		void drawPhysicsPolygonGeometry();
-		void drawPhysicsBoxGeometry();
+
+		/* Changes the color on collision
+		 */
+		void setGreen(const events::collisionEnter& e) const;
+		void resetGreen(const events::collisionExit& e) const;
+
+		/* Renders the collision information
+		 */
+		void drawDebugCollisionInfo(const events::collision& e) const;
+
+		/* Updates the window
+		 */
+		void draw();
 	};
 }

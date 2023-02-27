@@ -108,7 +108,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -512,8 +512,10 @@
     <ClInclude Include="lib\SDL2_gfx\SDL2_rotozoom.h" />
     <ClInclude Include="src\common\ecsTypes.h" />
     <ClInclude Include="src\graphics\state.h" />
+    <ClInclude Include="src\physics\components\collision.h" />
     <ClInclude Include="src\physics\state.h" />
     <ClInclude Include="src\physics\systems\collision.h" />
+    <ClInclude Include="src\physics\systems\collisionEvent.h" />
     <ClInclude Include="src\physics\units.h" />
     <ClInclude Include="src\game\factories.h" />
     <ClInclude Include="src\game\game.h" />

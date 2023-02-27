@@ -10,28 +10,6 @@ using namespace physics::units;
 
 Force::Force(const std::shared_ptr<ecsTypes::registry>& registry) : registry(registry) {}
 
-void Force::applyForce(ecsTypes::entity entity, glm::vec2 force) const {
-	if (!registry->any_of<components::linearMotion>(entity)) {
-		SDL_LogWarn(SDL_LOG_PRIORITY_WARN, "Tried to apply force to entity without linearMotion component");
-		return;
-	};
-
-	auto& linearMotion = registry->get<components::linearMotion>(entity);
-
-	linearMotion.acceleration += force * linearMotion.invMass;
-}
-
-void Force::applyTorque(ecsTypes::entity entity, float torque) const {
-	if (!registry->any_of<components::angularMotion>(entity)) {
-		SDL_LogWarn(SDL_LOG_PRIORITY_WARN, "Tried to apply force to entity without angularMotion component");
-		return;
-	};
-
-	auto& angularMotion = registry->get<components::angularMotion>(entity);
-
-	angularMotion.acceleration += torque * angularMotion.invI;
-}
-
 void Force::applyKeyboardPush() const {
 	auto keyState = SDL_GetKeyboardState(NULL);
 
@@ -57,11 +35,11 @@ void Force::applyKeyboardPush() const {
 		pushTorque += 25_Nm;
 	}
 
-	for (auto entity : registry->view<components::linearMotion>()) {
-		applyForce(entity, pushForce);
+	for (auto [entity, motion] : registry->view<components::linearMotion>().each()) {
+		motion.sumForces += pushForce;
 	}
 
-	for (auto entity : registry->view<components::angularMotion>()) {
-		applyTorque(entity, pushTorque);
+	for (auto [entity, motion] : registry->view<components::angularMotion>().each()) {
+		motion.sumTorque += pushTorque;
 	}
 }
