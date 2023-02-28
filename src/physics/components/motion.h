@@ -11,14 +11,11 @@ namespace components {
 		glm::vec2 velocity;
 		glm::vec2 sumForces;
 
-		inline linearMotion(glm::vec2 sumForces = glm::vec2(), glm::vec2 acceleration = glm::vec2(), glm::vec2 velocity = glm::vec2())
-			: acceleration(acceleration), velocity(velocity), sumForces(sumForces)
-		{}
-	};
-
-	struct mass {
 		float invMass;
-		inline mass(float mass = 1_kg) : invMass(1.0f / mass) {}
+
+		inline linearMotion(float mass = 1_kg, glm::vec2 sumForces = glm::vec2(), glm::vec2 acceleration = glm::vec2(), glm::vec2 velocity = glm::vec2())
+			: acceleration(acceleration), velocity(velocity), invMass(1.0f/mass), sumForces(sumForces)
+		{}
 	};
 
 	struct angularMotion {
