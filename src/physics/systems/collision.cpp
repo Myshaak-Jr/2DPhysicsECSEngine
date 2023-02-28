@@ -13,7 +13,10 @@ using namespace physics::units;
 Collision::Collision(const std::shared_ptr<ecsTypes::registry>& registry, const std::shared_ptr<ecsTypes::dispatcher>& dispatcher) :
 	registry(registry),
 	dispatcher(dispatcher)
-{}
+{
+	// Subsribe to events
+	dispatcher->sink<events::collision>().connect<&Collision::resolveCollision>(this);
+}
 
 void Collision::update() const {
 	circleCircleCollisionLoop();
@@ -61,8 +64,6 @@ void Collision::enqueueEnterCollision(ecsTypes::entity entity, ecsTypes::entity 
 	enterData.normal = data.normal;
 	enterData.depth = data.depth;
 
-	SDL_Log("Enqueued event Enter Collision!");
-
 	dispatcher->enqueue(enterData);
 }
 
@@ -75,8 +76,6 @@ void Collision::enqueueExitCollision(ecsTypes::entity entity, ecsTypes::entity o
 	events::collisionExit exitData{};
 	exitData.entity = entity;
 	exitData.other = other;
-
-	SDL_Log("Enqueued event Exit Collision!");
 
 	dispatcher->enqueue(exitData);
 }
@@ -106,4 +105,22 @@ bool Collision::circleCircleCollisionCheck(events::collision& data) const {
 	data.depth = glm::length(data.end - data.start);
 
 	return true;
+}
+
+void Collision::resolveCollision(const events::collision& e) const {
+	const auto& mass1 = registry->get<components::mass>(e.e1);
+	const auto& mass2 = registry->get<components::mass>(e.e2);
+
+	if (mass1.isStatic && mass2.isStatic) return;
+
+	float k = e.depth / (mass1.invMass + mass2.invMass);
+
+	if (!mass1.isStatic) {
+		auto& pos1 = registry->get<components::position>(e.e1);
+		pos1 -= e.normal * k * mass1.invMass;
+	}
+	if (!mass2.isStatic) {
+		auto& pos2 = registry->get<components::position>(e.e2);
+		pos2 += e.normal * k * mass2.invMass;
+	}
 }

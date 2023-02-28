@@ -108,14 +108,10 @@ void Graphics::draw() {
 }
 
 void Graphics::setGreen(const events::collisionEnter& e) const {
-	SDL_Log("Resolved event Enter Collision!");
-
 	registry->get<components::color>(e.entity).g = 255;
 }
 
 void Graphics::resetGreen(const events::collisionExit& e) const {
-	SDL_Log("Resolved event Exit Collision!");
-
 	registry->get<components::color>(e.entity).g = 0;
 }
 

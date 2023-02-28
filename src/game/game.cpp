@@ -47,8 +47,7 @@ void Game::setup() {
 	physics::state::gravity = glm::vec2(0.0f, 9.81_m / (1_s * 1_s));
 
 	// Create entities
-	player = factories::createBall(registry, glm::vec2(100_cm, 100_cm), 0_rad, 100_cm, 1_kg);
-	factories::createBall(registry, glm::vec2(500_cm, 100_cm), 0_rad, 50_cm, 1_kg);
+	factories::createBall(registry, graphics->center(), 0_rad, 200_cm, 1_kg, true);
 }
 
 void Game::update() {
@@ -63,16 +62,12 @@ void Game::update() {
 			if (event.key.keysym.sym == SDLK_ESCAPE)
 				running = false;
 			break;
-		case SDL_MOUSEMOTION:
+		case SDL_MOUSEBUTTONDOWN:
 		{
 			int x, y;
 			SDL_GetMouseState(&x, &y);
-
-			auto& pos = registry->get<components::position>(player);
-			pos.x = x;
-			pos.y = y;
+			factories::createBall(registry, glm::vec2(x, y), 0_rad, 50_cm, 1_kg);
 		}
-
 			break;
 		default:
 			break;

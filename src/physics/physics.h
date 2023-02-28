@@ -29,7 +29,6 @@ namespace physics {
 		std::unique_ptr<Force> force;
 		std::unique_ptr<Collision> collision;
 
-
 		// PHYSICS-RELATED SYSTEMS
 
 		/* Euler integration method system for linear motion

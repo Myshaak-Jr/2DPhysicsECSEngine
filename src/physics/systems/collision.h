@@ -40,5 +40,11 @@ namespace physics {
 		/* Enqueues exit collision event if entity exited collision
 		 */
 		void enqueueExitCollision(ecsTypes::entity entity, ecsTypes::entity other) const;
+
+		/* Resolves collision between entities
+		 * Listener for collision events
+		 * @param data The event data
+		 */
+		void resolveCollision(const events::collision& data) const;
 	};
 }

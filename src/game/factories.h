@@ -15,7 +15,7 @@ struct factories {
 	 * @param radius The raduis of the ball
 	 * @param mass The mass of the ball
 	 */
-	static ecsTypes::entity createBall(const std::shared_ptr<ecsTypes::registry>& registry, glm::vec2 position, float rot, float radius, float mass);
+	static ecsTypes::entity createBall(const std::shared_ptr<ecsTypes::registry>& registry, glm::vec2 position, float rot, float radius, float mass, bool isStatic = false);
 
 	/*
 	 * @brief Creates an entity with from the box template.
@@ -27,5 +27,5 @@ struct factories {
 	 * @param h The height of the box
 	 * @param mass The mass of the box
 	 */
-	static ecsTypes::entity createBox(const std::shared_ptr<ecsTypes::registry>& registry, glm::vec2 pos, float rot, float w, float h, float mass);
+	static ecsTypes::entity createBox(const std::shared_ptr<ecsTypes::registry>& registry, glm::vec2 pos, float rot, float w, float h, float mass, bool isStatic = false);
 };

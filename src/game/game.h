@@ -16,8 +16,6 @@ private:
 	bool running;
 	int fps;
 
-	ecsTypes::entity player;
-
 	std::shared_ptr<ecsTypes::registry> registry;
 	std::shared_ptr<ecsTypes::dispatcher> dispatcher;
 

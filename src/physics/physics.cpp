@@ -33,7 +33,7 @@ void Physics::update() const {
 	//	motion.sumForces += glm::vec2(20_N, 0_N);
 	//}
 
-	//applyGravity();
+	applyGravity();
 
 	integrateLinear(dt);
 	integrateAngular(dt);
@@ -44,28 +44,30 @@ void Physics::update() const {
 	for (auto [entity, pos, motion, circle] : registry->view<components::position, components::linearMotion, const components::circleGeometry>().each()) {
 		if (pos.x - circle.radius < 0.0f) {
 			pos.x = circle.radius;
-			motion.velocity.x *= -0.5;
+			motion.velocity.x *= 0.0f;
 		}
 		else if (pos.x + circle.radius > graphics::state::width) {
 			pos.x = graphics::state::width - circle.radius;
-			motion.velocity.x *= -0.5;
+			motion.velocity.x *= 0.0f;
 		}
 		if (pos.y - circle.radius < 0.0f) {
 			pos.y = circle.radius;
-			motion.velocity.y *= -0.5;
+			motion.velocity.y *= 0.0f;
 		}
 		else if (pos.y + circle.radius > graphics::state::height) {
 			pos.y = graphics::state::height - circle.radius;
-			motion.velocity.y *= -0.5;
+			motion.velocity.y *= 0.0f;
 		}
 	}
 }
 
 void Physics::integrateLinear(float dt) const {
-	auto view = registry->view<components::position, components::linearMotion>();
+	auto view = registry->view<components::position, components::linearMotion, const components::mass>();
 
-	for (auto [entity, pos, motion] : view.each()) {
-		motion.acceleration += motion.sumForces * motion.invMass;
+	for (auto [entity, pos, motion, mass] : view.each()) {
+		if (mass.isStatic) continue;
+
+		motion.acceleration += motion.sumForces * mass.invMass;
 
 		motion.velocity += motion.acceleration * dt;
 		pos += motion.velocity * dt;
@@ -76,10 +78,12 @@ void Physics::integrateLinear(float dt) const {
 }
 
 void Physics::integrateAngular(float dt) const {
-	auto view = registry->view<components::rotation, components::angularMotion>();
+	auto view = registry->view<components::rotation, components::angularMotion, const components::mass>();
 
-	for (auto [entity, rot, motion] : view.each()) {
-		motion.acceleration += motion.sumTorque * motion.invI;
+	for (auto [entity, rot, motion, mass] : view.each()) {
+		if (mass.isStatic) continue;
+
+		motion.acceleration += motion.sumTorque * mass.invI;
 
 		motion.velocity += motion.acceleration * dt;
 		rot.angle += motion.velocity * dt;
@@ -90,9 +94,10 @@ void Physics::integrateAngular(float dt) const {
 }
 
 void Physics::applyGravity() const {
-	auto view = registry->view<components::linearMotion>();
+	auto view = registry->view<components::linearMotion, const components::mass>();
 
-	for (auto [entity, motion] : view.each()) {
+	for (auto [entity, motion, mass] : view.each()) {
+		if (mass.isStatic) continue;
 		motion.acceleration += state::gravity;
 	}
 }
