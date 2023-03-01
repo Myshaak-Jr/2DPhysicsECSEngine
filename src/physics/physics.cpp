@@ -29,9 +29,9 @@ void Physics::update() const {
 
 	//force->applyKeyboardPush();
 	
-	//for (auto [entity, motion] : registry->view<components::linearMotion>().each()) {
-	//	motion.sumForces += glm::vec2(20_N, 0_N);
-	//}
+	for (auto [entity, motion] : registry->view<components::linearMotion>().each()) {
+		motion.sumForces += glm::vec2(2_N, 0_N);
+	}
 
 	applyGravity();
 
@@ -41,22 +41,22 @@ void Physics::update() const {
 	collision->update();
 
 	// JUST FOR NOW, THIS IS SO BAD AND UGLY
-	for (auto [entity, pos, motion, circle] : registry->view<components::position, components::linearMotion, const components::circleGeometry>().each()) {
+	for (auto [entity, pos, motion, circle, collision] : registry->view<components::position, components::linearMotion, const components::circleGeometry, const components::collision>().each()) {
 		if (pos.x - circle.radius < 0.0f) {
 			pos.x = circle.radius;
-			motion.velocity.x *= 0.0f;
+			motion.velocity.x *= -collision.restitution;
 		}
 		else if (pos.x + circle.radius > graphics::state::width) {
 			pos.x = graphics::state::width - circle.radius;
-			motion.velocity.x *= 0.0f;
+			motion.velocity.x *= -collision.restitution;
 		}
 		if (pos.y - circle.radius < 0.0f) {
 			pos.y = circle.radius;
-			motion.velocity.y *= 0.0f;
+			motion.velocity.y *= -collision.restitution;
 		}
 		else if (pos.y + circle.radius > graphics::state::height) {
 			pos.y = graphics::state::height - circle.radius;
-			motion.velocity.y *= 0.0f;
+			motion.velocity.y *= -collision.restitution;
 		}
 	}
 }
@@ -67,13 +67,12 @@ void Physics::integrateLinear(float dt) const {
 	for (auto [entity, pos, motion, mass] : view.each()) {
 		if (mass.isStatic) continue;
 
-		motion.acceleration += motion.sumForces * mass.invMass;
+		motion.acceleration = motion.sumForces * mass.invMass;
 
 		motion.velocity += motion.acceleration * dt;
 		pos += motion.velocity * dt;
 
 		motion.sumForces = glm::vec2();
-		motion.acceleration = glm::vec2();
 	}
 }
 
@@ -83,13 +82,12 @@ void Physics::integrateAngular(float dt) const {
 	for (auto [entity, rot, motion, mass] : view.each()) {
 		if (mass.isStatic) continue;
 
-		motion.acceleration += motion.sumTorque * mass.invI;
+		motion.acceleration = motion.sumTorque * mass.invI;
 
 		motion.velocity += motion.acceleration * dt;
 		rot.angle += motion.velocity * dt;
 
 		motion.sumTorque = 0.0f;
-		motion.acceleration = 0.0f;
 	}
 }
 
@@ -98,6 +96,6 @@ void Physics::applyGravity() const {
 
 	for (auto [entity, motion, mass] : view.each()) {
 		if (mass.isStatic) continue;
-		motion.acceleration += state::gravity;
+		motion.sumForces += state::gravity / mass.invMass;
 	}
 }

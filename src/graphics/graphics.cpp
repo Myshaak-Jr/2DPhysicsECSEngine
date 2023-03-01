@@ -8,7 +8,7 @@
 
 #include "components.h"
 #include "../common/components.h"
-#include "../physics/components/geometry.h"
+#include "../physics/components.h"
 
 #include "state.h"
 
@@ -54,7 +54,10 @@ Graphics::Graphics(const std::shared_ptr<ecsTypes::registry>& registry, const st
 	}
 
 	// Set listeners
-	dispatcher->sink<events::collision>().connect<&Graphics::drawDebugCollisionInfo>(this);
+	localDispatcher = std::make_unique<ecsTypes::dispatcher>();
+	
+	dispatcher->sink<events::collision>().connect<&Graphics::onEvent<events::collision>>(this);
+	localDispatcher->sink<events::collision>().connect<&Graphics::drawDebugCollisionInfo>(this);
 	dispatcher->sink<events::collisionEnter>().connect<&Graphics::setGreen>(this);
 	dispatcher->sink<events::collisionExit>().connect<&Graphics::resetGreen>(this);
 }
@@ -98,13 +101,16 @@ void Graphics::update() {
 }
 
 void Graphics::draw() {
+	SDL_RenderClear(renderer.get());
+
 	drawPhysicsCircleGeometry();
 	drawPhysicsPolygonGeometry();
+	drawDebugMotionInfo();
+	localDispatcher->update<events::collision>();
 
 	SDL_RenderPresent(renderer.get());
 
 	SDL_SetRenderDrawColor(renderer.get(), bgColor >> 16, bgColor >> 8, bgColor, 255);
-	SDL_RenderClear(renderer.get());
 }
 
 void Graphics::setGreen(const events::collisionEnter& e) const {
@@ -113,6 +119,14 @@ void Graphics::setGreen(const events::collisionEnter& e) const {
 
 void Graphics::resetGreen(const events::collisionExit& e) const {
 	registry->get<components::color>(e.entity).g = 0;
+}
+void Graphics::drawDebugMotionInfo() const {
+	auto view = registry->view<const components::position, const components::linearMotion>();
+	
+	for (auto [entity, pos, motion] : view.each()) {
+		lineColor(renderer.get(), pos.x, pos.y, pos.x + motion.velocity.x, pos.y + motion.velocity.y, 0xFF00FFFF);
+		//lineColor(renderer.get(), pos.x + motion.velocity.x, pos.y + motion.velocity.y, pos.x + motion.velocity.x + motion.acceleration.x, pos.y + motion.velocity.y + motion.acceleration.y, 0xFFFFFFFF);
+	}
 }
 
 void Graphics::drawDebugCollisionInfo(const events::collision& e) const {	
@@ -125,7 +139,8 @@ void Graphics::drawPhysicsCircleGeometry() {
 	auto view = registry->view<const components::position, const components::rotation, const components::circleGeometry, const components::color>();
 
 	for (auto [entity, pos, rot, circle, color] : view.each()) {
-		drawCircleAndRadius(pos, circle.radius, rot.angle, color.a << 24 | color.b << 16 | color.g << 8 | color.r);
+		//drawCircleAndRadius(pos, circle.radius, rot.angle, color.a << 24 | color.b << 16 | color.g << 8 | color.r);
+		filledCircleColor(renderer.get(), pos.x, pos.y, circle.radius, color.a << 24 | color.b << 16 | color.g << 8 | color.r);
 	}
 }
 void Graphics::drawPhysicsPolygonGeometry() {

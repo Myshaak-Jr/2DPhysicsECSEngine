@@ -65,10 +65,19 @@ namespace graphics {
 		void drawPhysicsCircleGeometry();
 		void drawPhysicsPolygonGeometry();
 
+		/* Forwards the event to local dispatcher
+		 */
+		template <class T>
+		void onEvent(const T& e);
+
 		/* Changes the color on collision
 		 */
 		void setGreen(const events::collisionEnter& e) const;
 		void resetGreen(const events::collisionExit& e) const;
+
+		/* Renders debug motion vectors
+		 */
+		void drawDebugMotionInfo() const;
 
 		/* Renders the collision information
 		 */
@@ -78,4 +87,11 @@ namespace graphics {
 		 */
 		void draw();
 	};
+}
+
+
+// Template implementation
+template <class T>
+void graphics::Graphics::onEvent(const T& e) {
+	localDispatcher->enqueue(e);
 }

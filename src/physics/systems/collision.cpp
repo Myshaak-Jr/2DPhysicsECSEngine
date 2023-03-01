@@ -107,20 +107,60 @@ bool Collision::circleCircleCollisionCheck(events::collision& data) const {
 	return true;
 }
 
+void Collision::resolvePenetration(const events::collision& e) const {
+	const auto& mass1 = registry->get<components::mass>(e.e1);
+	const auto& mass2 = registry->get<components::mass>(e.e2);
+
+	float k = e.depth / (mass1.invMass + mass2.invMass);
+
+	if (!mass1.isStatic) {
+		auto& pos1 = registry->get<components::position>(e.e1);
+		pos1 -= e.normal * (k * mass1.invMass);
+	}
+	if (!mass2.isStatic) {
+		auto& pos2 = registry->get<components::position>(e.e2);
+		pos2 += e.normal * (k * mass2.invMass);
+	}
+}
+
 void Collision::resolveCollision(const events::collision& e) const {
 	const auto& mass1 = registry->get<components::mass>(e.e1);
 	const auto& mass2 = registry->get<components::mass>(e.e2);
 
 	if (mass1.isStatic && mass2.isStatic) return;
 
-	float k = e.depth / (mass1.invMass + mass2.invMass);
+	resolvePenetration(e);
 
+	// Get restitution
+	const auto& collision1 = registry->get<components::collision>(e.e1);
+	const auto& collision2 = registry->get<components::collision>(e.e2);
+
+	float restitution = glm::min(collision1.restitution, collision2.restitution);
+	//SDL_Log("Restitution %.5f.", restitution);
+
+	// Get velocities
+	glm::vec2 vel1 = glm::vec2();
 	if (!mass1.isStatic) {
-		auto& pos1 = registry->get<components::position>(e.e1);
-		pos1 -= e.normal * k * mass1.invMass;
+		vel1 = registry->get<components::linearMotion>(e.e1).velocity;
+	}
+	glm::vec2 vel2 = glm::vec2();
+	if (!mass2.isStatic) {
+		vel2 = registry->get<components::linearMotion>(e.e2).velocity;
+	}
+
+	// Calculate the impulse
+	const glm::vec2 vrel = vel1 - vel2;
+	float vrelDotNormal = glm::dot(vrel, e.normal);
+	const glm::vec2 impulseDirection = e.normal;
+	float impulseLength = -(1 + restitution) * vrelDotNormal / (mass1.invMass + mass2.invMass);
+
+	const glm::vec2 impulse = impulseDirection * impulseLength;
+
+	// Apply the impulse
+	if (!mass1.isStatic) {
+		registry->get<components::linearMotion>(e.e1).velocity += impulse * mass1.invMass;
 	}
 	if (!mass2.isStatic) {
-		auto& pos2 = registry->get<components::position>(e.e2);
-		pos2 += e.normal * k * mass2.invMass;
+		registry->get<components::linearMotion>(e.e2).velocity -= impulse * mass2.invMass;
 	}
 }

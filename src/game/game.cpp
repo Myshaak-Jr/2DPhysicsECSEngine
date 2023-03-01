@@ -47,7 +47,7 @@ void Game::setup() {
 	physics::state::gravity = glm::vec2(0.0f, 9.81_m / (1_s * 1_s));
 
 	// Create entities
-	factories::createBall(registry, graphics->center(), 0_rad, 200_cm, 1_kg, true);
+	//const auto& bol =  factories::createBall(registry, graphics->center() + glm::vec2(200_cm, 0.0f), 0_rad, 50_cm, 1_kg, 0.3f, false);
 }
 
 void Game::update() {
@@ -66,7 +66,7 @@ void Game::update() {
 		{
 			int x, y;
 			SDL_GetMouseState(&x, &y);
-			factories::createBall(registry, glm::vec2(x, y), 0_rad, 50_cm, 1_kg);
+			factories::createBall(registry, glm::vec2(x, y), 0_rad, 50_cm, 10_kg, 1.0f);
 		}
 			break;
 		default:

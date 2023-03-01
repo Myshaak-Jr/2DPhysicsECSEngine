@@ -46,5 +46,9 @@ namespace physics {
 		 * @param data The event data
 		 */
 		void resolveCollision(const events::collision& data) const;
+
+		/* Shifts the entities from collision
+		 */
+		void resolvePenetration(const events::collision& data) const;
 	};
 }

@@ -6,7 +6,7 @@
 
 using namespace components;
 
-ecsTypes::entity factories::createBall(const std::shared_ptr<ecsTypes::registry>& registry, glm::vec2 pos, float rot, float radius, float mass, bool isStatic) {
+ecsTypes::entity factories::createBall(const std::shared_ptr<ecsTypes::registry>& registry, glm::vec2 pos, float rot, float radius, float mass, float restitution, bool isStatic) {
 	auto entity = registry->create();
 	registry->emplace<position>(entity, pos);
 	registry->emplace<rotation>(entity, rot);
@@ -20,12 +20,12 @@ ecsTypes::entity factories::createBall(const std::shared_ptr<ecsTypes::registry>
 	registry->emplace<circleGeometry>(entity, radius);
 
 	registry->emplace<color>(entity, 255, 0, 0);
-	registry->emplace<collision>(entity);
+	registry->emplace<collision>(entity, restitution);
 
 	return entity;
 }
 
-ecsTypes::entity factories::createBox(const std::shared_ptr<ecsTypes::registry>& registry, glm::vec2 pos, float rot, float w, float h, float mass, bool isStatic) {
+ecsTypes::entity factories::createBox(const std::shared_ptr<ecsTypes::registry>& registry, glm::vec2 pos, float rot, float w, float h, float mass, float restitution, bool isStatic) {
 	auto entity = registry->create();
 	registry->emplace<position>(entity, pos);
 	registry->emplace<rotation>(entity, rot);
@@ -35,7 +35,7 @@ ecsTypes::entity factories::createBox(const std::shared_ptr<ecsTypes::registry>&
 	registry->emplace<components::mass>(entity, mass, (1.0f / 12.0f) * (w * w + h * h) * mass, isStatic);
 
 	registry->emplace<boxGeometry>(entity, w, h);
-	registry->emplace<collision>(entity);
+	registry->emplace<collision>(entity, restitution);
 
 	registry->emplace<color>(entity, 255, 0, 0);
 
